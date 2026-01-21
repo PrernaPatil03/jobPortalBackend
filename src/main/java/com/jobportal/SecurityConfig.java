@@ -20,36 +20,78 @@ public class SecurityConfig {
 
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
+//
+//    @Bean
+//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+//        http
+//            .csrf(csrf -> csrf.disable())
+//            .cors(cors -> cors.configurationSource(request -> {
+//                var config = new org.springframework.web.cors.CorsConfiguration();
+//                config.setAllowedOrigins(List.of("https://jobportal-frontend-6isx.onrender.com")); // ✅ Frontend origin
+//                config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+//                config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+//                config.setAllowCredentials(true); // ✅ Allow credentials (e.g., cookies, headers)
+//                return config;
+//            }))
+//            .authorizeHttpRequests(auth -> auth
+//            		.requestMatchers("/auth/login", "/users/login",
+//            				"/users/register",
+//            				"/users/verifyOtp/**",
+//            				 "/users/changePass",
+//            				"/users/verify",
+//            				"/users/verify/**",
+//            				"/users/sendOtp/**").permitAll()
+//
+//                .anyRequest().authenticated()
+//            )
+//            .exceptionHandling(ex -> ex.authenticationEntryPoint(unauthorizedHandler))
+//            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+//
+//        // ✅ Add JWT filter before username-password filter
+//        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+//
+//        return http.build();
+//    }
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.configurationSource(request -> {
-                var config = new org.springframework.web.cors.CorsConfiguration();
-                config.setAllowedOrigins(List.of("http://localhost:5173")); // ✅ Frontend origin
-                config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-                config.setAllowCredentials(true); // ✅ Allow credentials (e.g., cookies, headers)
-                return config;
-            }))
-            .authorizeHttpRequests(auth -> auth
-            		.requestMatchers("/auth/login", "/users/login",
-            				"/users/register",
-            				"/users/verifyOtp/**",
-            				 "/users/changePass",
-            				"/users/verify",
-            				"/users/verify/**",
-            				"/users/sendOtp/**").permitAll()
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(request -> {
+                    var config = new org.springframework.web.cors.CorsConfiguration();
+                    config.setAllowedOrigins(
+                            List.of("https://jobportal-frontend-6isx.onrender.com")
+                    );
+                    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                    config.setAllowedHeaders(List.of("*"));
+                    config.setAllowCredentials(true);
+                    return config;
+                }))
+                .authorizeHttpRequests(auth -> auth
+                        // ✅ ALLOW PREFLIGHT REQUESTS
+                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
 
-                .anyRequest().authenticated()
-            )
-            .exceptionHandling(ex -> ex.authenticationEntryPoint(unauthorizedHandler))
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+                        // ✅ AUTH ENDPOINTS
+                        .requestMatchers(
+                                "/auth/login",
+                                "/users/login",
+                                "/users/register",
+                                "/users/verifyOtp/**",
+                                "/users/changePass",
+                                "/users/verify",
+                                "/users/verify/**",
+                                "/users/sendOtp/**"
+                        ).permitAll()
 
-        // ✅ Add JWT filter before username-password filter
+                        .anyRequest().authenticated()
+                )
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(unauthorizedHandler))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
 }
